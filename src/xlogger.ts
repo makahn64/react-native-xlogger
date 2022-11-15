@@ -171,8 +171,7 @@ export const reactotron = {
 
 export const sentry = {
   log: SentryLog.log,
-  logFatal: SentryLog.logFatal,
-  logCritical: SentryLog.logCritical
+  logFatal: SentryLog.logFatal
 }
 
 // synonyms
