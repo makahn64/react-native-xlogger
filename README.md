@@ -115,7 +115,6 @@ but map the `Severity` differently in order to support levels that RNX does not 
 | Method                            | Maps to                              |
 |-----------------------------------|--------------------------------------|
 | XLogger.sentry.log                |  `Sentry.captureMessage` with `Severity` set according to the mapping shown in Log Levels, above  |
-| XLogger.sentry.logCritical        |  `Sentry.captureMessage` with `Severity.Critical`             |
 | XLogger.sentry.logFatal           |  `Sentry.captureMessage` with `Severity.Fatal`               |
 
 ## API
