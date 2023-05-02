@@ -29,13 +29,13 @@ const mapLogLevelToSeverity = (logLevel: LogLevel): Breadcrumb['level'] => {
 }
 
 // if it's a primitive, sent it directly, otherwise stringify
-const reduceToSentryMessage = (message: Message) => isStringOrNumber(message) ? `${message}` : JSON.stringify(message);
+const reduceToSentryMessage = (message: Message | Error) => isStringOrNumber(message) ? `${message}` : JSON.stringify(message);
 
-const captureMessage = (message: Message, severity: Breadcrumb['level']) => {
+const captureMessage = (message: Message | Error, severity: Breadcrumb['level']) => {
     Sentry.captureMessage( reduceToSentryMessage(message), severity);
 }
 
-export const log = (message: Message | Exception, logLevel: LogLevel ) => {
+export const log = (message: Message | Error, logLevel: LogLevel ) => {
    captureMessage( message, mapLogLevelToSeverity(logLevel));
 };
 

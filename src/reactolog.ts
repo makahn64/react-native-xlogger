@@ -11,7 +11,7 @@ import {Message, ReactotronInstance} from './types';
 
 let reactotronInstance: ReactotronInstance | undefined;
 
-export const log = (message: Message) => {
+export const log = (message: Message | Error) => {
     if (reactotronInstance !== undefined) {
         reactotronInstance.log!(message);
     }

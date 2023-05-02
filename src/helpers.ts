@@ -1,6 +1,6 @@
 import {LogLevel, Message} from "./types";
 
-export const isStringOrNumber = (message: Message) => (typeof message === 'string' || typeof message === 'number');
+export const isStringOrNumber = (message: Message | Error) => (typeof message === 'string' || typeof message === 'number');
 
 const LL_DESCRIPTIONS = [
   'silent',
