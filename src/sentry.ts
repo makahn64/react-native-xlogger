@@ -7,45 +7,40 @@
  **********************************/
 
 import * as Sentry from '@sentry/react-native';
-import {Exception, Severity} from '@sentry/react-native';
+import { Breadcrumb, Exception } from '@sentry/react-native';
 import {LogLevel, Message} from './types';
 import {isStringOrNumber} from "./helpers";
 
 // Severity has additional levels like Fatal and Critical that we're not using
-const mapLogLevelToSeverity = (logLevel: LogLevel) => {
+const mapLogLevelToSeverity = (logLevel: LogLevel): Breadcrumb['level'] => {
   switch (logLevel) {
     case LogLevel.silent:
     case LogLevel.silly:
     case LogLevel.debug:
-      return Severity.Debug;
+      return 'debug';
     case LogLevel.warn:
-      return Severity.Warning;
+      return 'warning';
     case LogLevel.info:
-      return Severity.Log;
+      return 'log';
     case LogLevel.error:
-      return Severity.Error;
+      return 'error';
   }
-  return Severity.Log;
+  return 'log';
 }
 
 // if it's a primitive, sent it directly, otherwise stringify
-const reduceToSentryMessage = (message: Message) => isStringOrNumber(message) ? `${message}` : JSON.stringify(message);
+const reduceToSentryMessage = (message: Message | Error) => isStringOrNumber(message) ? `${message}` : JSON.stringify(message);
 
-const captureMessage = (message: Message, severity: Severity) => {
+const captureMessage = (message: Message | Error, severity: Breadcrumb['level']) => {
     Sentry.captureMessage( reduceToSentryMessage(message), severity);
 }
 
-export const log = (message: Message | Exception, logLevel: LogLevel ) => {
+export const log = (message: Message | Error, logLevel: LogLevel ) => {
    captureMessage( message, mapLogLevelToSeverity(logLevel));
 };
 
-// not sure these will be used, but here you go
-export const logCritical = (message: Message) => {
-    captureMessage(message, Severity.Critical)
-};
-
 export const logFatal = (message: Message) => {
-  captureMessage(message, Severity.Fatal)
+  captureMessage(message, 'fatal')
 };
 
 // this is probably not useful
