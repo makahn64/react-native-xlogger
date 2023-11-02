@@ -15,19 +15,9 @@ const DEFAULT_CONFIG: XLoggerConfig = {
   useCorrespondingConsoleMethod: true,
   reactotronInstance: undefined,
   useReactotron: false,
-  useSentry: false,
   printLogLevel: true,
   printLogTime: false,
 }
-
-let SentryLog: typeof import('./sentry') | undefined;
-
-interface Sentry {
-  log?: (message: Message | Error, logLevel: LogLevel) => void;
-  logFatal?: (message: Message) => void;
-}
-
-export const sentry: Sentry = {}
 
 let currentConfig = DEFAULT_CONFIG;
 
@@ -43,19 +33,11 @@ export const configure = (settings: Partial<XLoggerConfig>) => {
       DEFAULT_CONFIG.useCorrespondingConsoleMethod,
     reactotronInstance: settings?.reactotronInstance || DEFAULT_CONFIG.reactotronInstance,
     useReactotron: settings?.useReactotron || DEFAULT_CONFIG.useReactotron,
-    useSentry: settings?.useSentry || DEFAULT_CONFIG.useSentry,
     printLogLevel: settings?.printLogLevel || DEFAULT_CONFIG.printLogLevel,
     printLogTime: settings?.printLogTime || DEFAULT_CONFIG.printLogTime
   }
   if (settings?.reactotronInstance){
     Reactolog.setReactotronInstance(settings.reactotronInstance);
-  }
-  if (currentConfig.useSentry) {
-    import('./sentry').then(module => {
-      SentryLog = module;
-      sentry.log = SentryLog.log;
-      sentry.logFatal = SentryLog.logFatal;
-    })
   }
 }
 
@@ -72,10 +54,10 @@ const appendPrefixes = (message: Message | Error, logLevel: LogLevel) => {
   return message;
 }
 
-export type BypassParams = { bypassReactotron: boolean; bypassSentry: boolean };
+export type BypassParams = { bypassReactotron: boolean; };
 
 const logIfLevelLegit = (message: Message | Error, bypassParams: BypassParams, level: LogLevel) => {
-  const { bypassSentry, bypassReactotron } = bypassParams;
+  const { bypassReactotron } = bypassParams;
   if (level <= currentConfig.logLevel) {
     if (level === LogLevel.error && currentConfig.useCorrespondingConsoleMethod) {
       // eslint-disable-next-line no-console
@@ -89,9 +71,6 @@ const logIfLevelLegit = (message: Message | Error, bypassParams: BypassParams, l
     }
     if (currentConfig.reactotronInstance && !bypassReactotron) {
       Reactolog.log(message);
-    }
-    if (currentConfig.useSentry && !bypassSentry) {
-      SentryLog?.log(message,level);
     }
   }
 };
@@ -113,14 +92,6 @@ export const setUseReactotron = (shouldUse: boolean) => {
 };
 
 /**
- * Enables/disables Sentry logging
- * @param shouldUse
- */
-export const setUseSentry = (shouldUse: boolean) => {
-  currentConfig.useSentry = shouldUse;
-};
-
-/**
  * Maps logWarn to console.warn, and logError to console.error
  * @param shouldUse
  */
@@ -133,36 +104,33 @@ export const setUseCorrespondingConsoleMethod = (shouldUse: boolean) => {
  * @param message
  * @param bypassParams
  */
-export const out = (message: Message, bypassParams: BypassParams = { bypassSentry: true, bypassReactotron: false } ) => {
+export const out = (message: Message, bypassParams: BypassParams = { bypassReactotron: false } ) => {
   if (currentConfig.logLevel !== LogLevel.silent) {
     // eslint-disable-next-line no-console
     console.log(message);
     if (currentConfig.useReactotron && !bypassParams.bypassReactotron) {
       Reactolog.log(message);
     }
-    if (currentConfig.useSentry && !bypassParams.bypassSentry) {
-      SentryLog?.log(message, LogLevel.info);
-    }
   }
 };
 
-export const logSilly = (message: Message, bypassParams: BypassParams = { bypassReactotron: false, bypassSentry: true }) => logIfLevelLegit
+export const logSilly = (message: Message, bypassParams: BypassParams = { bypassReactotron: false }) => logIfLevelLegit
 (message, bypassParams, LogLevel.silly);
 
-export const logVerbose = (message: Message, bypassParams: BypassParams = { bypassReactotron: false, bypassSentry: true }) =>
+export const logVerbose = (message: Message, bypassParams: BypassParams = { bypassReactotron: false }) =>
   logIfLevelLegit(message, bypassParams, LogLevel.verbose);
 
-export const logInfo = (message: Message, bypassParams: BypassParams = { bypassReactotron: false, bypassSentry: true }) =>
+export const logInfo = (message: Message, bypassParams: BypassParams = { bypassReactotron: false }) =>
   logIfLevelLegit(message, bypassParams, LogLevel.info);
 
-// for Warn level, default is not to bypass sentry
-export const logWarn = (message: Message, bypassParams: BypassParams = { bypassReactotron: false, bypassSentry: false }) =>
+// for Warn level
+export const logWarn = (message: Message, bypassParams: BypassParams = { bypassReactotron: false }) =>
   logIfLevelLegit(message, bypassParams, LogLevel.warn);
 
-export const logError = (message: Message | Error, bypassParams: BypassParams = { bypassReactotron: false, bypassSentry: false }) =>
+export const logError = (message: Message | Error, bypassParams: BypassParams = { bypassReactotron: false }) =>
   logIfLevelLegit(message,bypassParams, LogLevel.error);
 
-export const logDebug = (message: Message, bypassParams: BypassParams = { bypassReactotron: false, bypassSentry: true }) =>
+export const logDebug = (message: Message, bypassParams: BypassParams = { bypassReactotron: false }) =>
   logIfLevelLegit(message, bypassParams, LogLevel.debug);
 
 // direct access, only if turned on.

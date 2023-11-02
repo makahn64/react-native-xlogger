@@ -16,7 +16,6 @@ export enum LogLevel {
 export interface XLoggerConfig {
   logLevel: LogLevel;
   useCorrespondingConsoleMethod: boolean;
-  useSentry: boolean;
   printLogLevel: boolean;
   printLogTime: boolean;
   reactotronInstance?: ReactotronInstance;
