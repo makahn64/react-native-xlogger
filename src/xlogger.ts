@@ -7,7 +7,6 @@
  **********************************/
 
 import * as Reactolog from './reactolog';
-import * as SentryLog from './sentry';
 import {LogLevel, Message, XLoggerConfig, ReactotronInstance} from './types';
 import {descriptionForLevel} from "./helpers";
 
@@ -20,6 +19,15 @@ const DEFAULT_CONFIG: XLoggerConfig = {
   printLogLevel: true,
   printLogTime: false,
 }
+
+let SentryLog: typeof import('./sentry') | undefined;
+
+interface Sentry {
+  log?: (message: Message | Error, logLevel: LogLevel) => void;
+  logFatal?: (message: Message) => void;
+}
+
+export const sentry: Sentry = {}
 
 let currentConfig = DEFAULT_CONFIG;
 
@@ -41,6 +49,13 @@ export const configure = (settings: Partial<XLoggerConfig>) => {
   }
   if (settings?.reactotronInstance){
     Reactolog.setReactotronInstance(settings.reactotronInstance);
+  }
+  if (currentConfig.useSentry) {
+    import('./sentry').then(module => {
+      SentryLog = module;
+      sentry.log = SentryLog.log;
+      sentry.logFatal = SentryLog.logFatal;
+    })
   }
 }
 
@@ -76,7 +91,7 @@ const logIfLevelLegit = (message: Message | Error, bypassParams: BypassParams, l
       Reactolog.log(message);
     }
     if (currentConfig.useSentry && !bypassSentry) {
-      SentryLog.log(message,level);
+      SentryLog?.log(message,level);
     }
   }
 };
@@ -126,7 +141,7 @@ export const out = (message: Message, bypassParams: BypassParams = { bypassSentr
       Reactolog.log(message);
     }
     if (currentConfig.useSentry && !bypassParams.bypassSentry) {
-      SentryLog.log(message, LogLevel.info);
+      SentryLog?.log(message, LogLevel.info);
     }
   }
 };
@@ -168,11 +183,6 @@ export const reactotron = {
     }
   },
 };
-
-export const sentry = {
-  log: SentryLog.log,
-  logFatal: SentryLog.logFatal
-}
 
 // synonyms
 export const silly = logSilly;

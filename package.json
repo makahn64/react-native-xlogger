@@ -28,7 +28,6 @@
     "@sentry/react-native": "^5.4.0"
   },
   "peerDependencies": {
-    "reactotron-react-native": "^5.0.0",
-    "@sentry/react-native": "^5.4.0"
+    "reactotron-react-native": "^5.0.0"
   }
 }
